@@ -402,18 +402,25 @@ func BenchmarkFind(b *testing.B) {
 	}
 }
 
-func BenchmarkFindLookaround(b *testing.B) {
-	p := fixturePattern("{~foo}foo")
-	t := "barfoofoobarfoo"
+func BenchmarkLookaround(b *testing.B) {
+	benchmark := func(title, expr string) {
+		p := fixturePattern(expr)
 
-	b.ResetTimer()
+		for n := 0; n < 4; n++ {
+			t := strings.Repeat("barfoofoobarfoo", int(math.Pow10(n)))
 
-	for i := 0; i < b.N; i++ {
-		assert.Equal(b, [][]int{
-			[]int{3, 6},
-			[]int{12, 15},
-		}, p.Find(t, -1))
+			b.Run(fmt.Sprintf("%s/10**%d", title, n), func(b *testing.B) {
+				for i := 0; i < b.N; i++ {
+					p.Find(t, -1)
+				}
+			})
+		}
 	}
+
+	benchmark("PositiveLookahead", "foo{foo}")
+	benchmark("PositiveLookbehind", "{foo}foo")
+	benchmark("NegativeLookahead", "foo{~foo}")
+	benchmark("NegativeLookbehind", "{~foo}foo")
 }
 
 // -----------------------------------------------------------------------------
