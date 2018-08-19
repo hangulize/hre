@@ -406,10 +406,11 @@ func BenchmarkLookaround(b *testing.B) {
 	benchmark := func(title, expr string) {
 		p := fixturePattern(expr)
 
-		for n := 0; n < 4; n++ {
-			t := strings.Repeat("barfoofoobarfoo", int(math.Pow10(n)))
+		for i := 0; i <= 10; i++ {
+			n := int(math.Pow(2, float64(i)))
+			t := strings.Repeat("barfoofoobarfoo", n)
 
-			b.Run(fmt.Sprintf("%s/10**%d", title, n), func(b *testing.B) {
+			b.Run(fmt.Sprintf("%s/%d", title, n), func(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 					p.Find(t, -1)
 				}
