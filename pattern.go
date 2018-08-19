@@ -230,8 +230,13 @@ func (p *Pattern) Replace(word string, rpat *RPattern, n int) string {
 		start, stop := m[0], m[1]
 		buf.WriteString(word[cur:start])
 
-		repl := rpat.Interpolate(p, word, m)
-		buf.WriteString(repl)
+		repl, err := rpat.Interpolate(p, word, m)
+
+		if err == nil {
+			buf.WriteString(repl)
+		} else {
+			buf.WriteString(word[start:stop])
+		}
 
 		cur = stop
 	}

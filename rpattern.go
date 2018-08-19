@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hangulize/stringset"
+	"github.com/pkg/errors"
 )
 
 // RPattern is a dynamic replacement pattern.
@@ -94,7 +95,9 @@ func NewRPattern(
 // -----------------------------------------------------------------------------
 
 // Interpolate determines the final replacement based on the matched Pattern.
-func (rp *RPattern) Interpolate(p *Pattern, word string, m []int) string {
+func (rp *RPattern) Interpolate(
+	p *Pattern, word string, m []int,
+) (string, error) {
 	var buf bytes.Buffer
 	varIndex := 0
 
@@ -108,13 +111,15 @@ func (rp *RPattern) Interpolate(p *Pattern, word string, m []int) string {
 		case toVar:
 			// var-to-var: <var> in Pattern to <var> in RPattern.
 			if varIndex > len(p.usedVars)-1 {
-				panic("mapped vars have different length")
+				err := errors.New("mapped vars have different length")
+				return "", err
 			}
 			fromVar := p.usedVars[varIndex]
 			fromVal := captured(word, m, varIndex+1)
 
 			// Find index of the matched character in the var.
 			i := indexOf(fromVal, fromVar)
+			i = i % len(part.usedVar)
 
 			// Choose a replacement character at the same index.
 			toVal := part.usedVar[i]
@@ -124,7 +129,7 @@ func (rp *RPattern) Interpolate(p *Pattern, word string, m []int) string {
 		}
 	}
 
-	return buf.String()
+	return buf.String(), nil
 }
 
 // Letters returns the set of natural letters used in the expression in
