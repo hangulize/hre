@@ -320,7 +320,13 @@ func TestComplexLookaround(t *testing.T) {
 	})
 }
 
-func TestMultipleLookaround(t *testing.T) {
+func TestMultipleNegativeLookahead(t *testing.T) {
+	p := fixturePattern("foo{~foo}")
+	w := "foobarbarfoofoo"
+	assert.Equal(t, [][]int{[]int{0, 3}, []int{12, 15}}, p.Find(w, -1))
+}
+
+func TestMultipleNegativeLookbehind(t *testing.T) {
 	p := fixturePattern("{~foo}foo")
 	w := "barfoofoobarfoo"
 	assert.Equal(t, [][]int{[]int{3, 6}, []int{12, 15}}, p.Find(w, -1))
