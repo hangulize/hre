@@ -1,5 +1,9 @@
 # HRE
 
+[![GoDoc](https://godoc.org/github.com/hangulize/hre?status.svg)](https://godoc.org/github.com/hangulize/hre)
+[![Go Report Card](https://goreportcard.com/badge/github.com/hangulize/hre)](https://goreportcard.com/report/github.com/hangulize/hre)
+[![Build Status](https://travis-ci.org/hangulize/hre.svg?branch=develop)](https://travis-ci.org/hangulize/hre)
+
 RegExp dialect for Hangulize
 
 - `^` - the beginning of word not line
