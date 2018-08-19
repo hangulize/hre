@@ -183,14 +183,14 @@ func (p *Pattern) Find(word string, n int) [][]int {
 
 		// Test negative lookahead.
 		if p.negA != nil {
-			if p.negA.MatchString(safeSlice(word, m[lenM-4], length)) {
+			if p.negA.MatchString(substr(word, m[lenM-4], length)) {
 				continue
 			}
 		}
 
 		// Test negative lookbehind.
 		if p.negB != nil {
-			if p.negB.MatchString(safeSlice(word, 0, m[5])) {
+			if p.negB.MatchString(substr(word, 0, m[5])) {
 				continue
 			}
 		}

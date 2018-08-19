@@ -16,9 +16,9 @@ func indexOf(val string, vals []string) int {
 	return -1
 }
 
-// safeSlice is a safe version of s[start:stop]. When start or stop is
-// invalid, this function returns "" instead of panic().
-func safeSlice(s string, start int, stop int) string {
+// substr is a safe version of s[start:stop]. When start or stop is invalid,
+// this function returns "" instead of panic().
+func substr(s string, start int, stop int) string {
 	if start < 0 || stop < 0 {
 		return ""
 	}
@@ -31,7 +31,7 @@ func safeSlice(s string, start int, stop int) string {
 // captured returns the captured substring by their group number.
 func captured(s string, m []int, n int) string {
 	i := n * 2
-	return safeSlice(s, m[i], m[i+1])
+	return substr(s, m[i], m[i+1])
 }
 
 // noCapture removes capturing groups in a regexp string.

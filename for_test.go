@@ -105,7 +105,7 @@ func assertFirstMatch(t *testing.T, p *Pattern, scenario []string) {
 		start := strings.Index(underline, "^") - 3
 		stop := strings.LastIndex(underline, "^") + 1 - 3
 
-		expected := safeSlice(word, start, stop)
+		expected := substr(word, start, stop)
 		got := word[m[0]:m[1]]
 
 		assert.Equalf(t, expected, got, ""+
