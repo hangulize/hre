@@ -424,10 +424,10 @@ func BenchmarkLookaround(b *testing.B) {
 		}
 	}
 
-	benchmark("PositiveLookahead", "foo{foo}")
-	benchmark("PositiveLookbehind", "{foo}foo")
-	benchmark("NegativeLookahead", "bar{~baz}")
-	benchmark("NegativeLookbehind", "{~baz}bar")
+	benchmark("PA", "foo{foo}")  // O(n)
+	benchmark("PB", "{foo}foo")  // O(n)
+	benchmark("NA", "bar{~baz}") // O(n)
+	benchmark("NB", "{~baz}bar") // O(n²)
 }
 
 // -----------------------------------------------------------------------------
