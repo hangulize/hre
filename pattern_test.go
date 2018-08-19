@@ -414,9 +414,9 @@ func BenchmarkLookaround(b *testing.B) {
 
 		for i := 0; i <= 10; i++ {
 			n := int(math.Pow(2, float64(i)))
-			t := strings.Repeat("barfoofoobarfoo", n)
+			t := strings.Repeat("foobazfoofoobazbarbarbaz", n)
 
-			b.Run(fmt.Sprintf("%s/%d", title, n), func(b *testing.B) {
+			b.Run(fmt.Sprintf("%s/%d[%d]", title, n, len(p.Find(t, -1))), func(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 					p.Find(t, -1)
 				}
@@ -426,8 +426,8 @@ func BenchmarkLookaround(b *testing.B) {
 
 	benchmark("PositiveLookahead", "foo{foo}")
 	benchmark("PositiveLookbehind", "{foo}foo")
-	benchmark("NegativeLookahead", "foo{~foo}")
-	benchmark("NegativeLookbehind", "{~foo}foo")
+	benchmark("NegativeLookahead", "bar{~baz}")
+	benchmark("NegativeLookbehind", "{~baz}bar")
 }
 
 // -----------------------------------------------------------------------------
