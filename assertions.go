@@ -101,9 +101,7 @@ func expandLookahead(expr string) (string, string) {
 	if strings.HasPrefix(lookExpr, `~`) {
 		// negative lookahead
 		negAExpr = fmt.Sprintf(`^(%s)`, lookExpr[1:])
-
-		// Lookahead requires greedy matching, unlike lookbehind.
-		lookExpr = `.*`
+		lookExpr = `.*?`
 	}
 
 	// Replace lookahead with 2 parentheses:
@@ -139,8 +137,6 @@ func expandLookbehind(expr string) (string, string) {
 	if strings.HasPrefix(lookExpr, `~`) {
 		// negative lookbehind
 		negBExpr = fmt.Sprintf(`(%s)$`, lookExpr[1:])
-
-		// Lookbehind requires non-greedy matching, unlike lookahead.
 		lookExpr = `.*?`
 	}
 
