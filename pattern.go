@@ -137,6 +137,20 @@ func (p *Pattern) Explain() string {
 
 // -----------------------------------------------------------------------------
 
+func pickStartStop(m []int) (int, int) {
+	start := m[5]
+	if start == -1 {
+		start = m[0]
+	}
+
+	stop := m[len(m)-4]
+	if stop == -1 {
+		stop = m[1]
+	}
+
+	return start, stop
+}
+
 // Find searches up to n matches in the word. If n is -1, it will search all
 // matches. The result is an array of submatch locations.
 func (p *Pattern) Find(word string, n int) [][]int {
@@ -171,7 +185,7 @@ func (p *Pattern) Find(word string, n int) [][]int {
 		}
 
 		// Pick the actual start and stop.
-		start, stop := p.pickStartStop(m)
+		start, stop := pickStartStop(m)
 
 		// The match MUST NOT be zero-width.
 		if stop-start == 0 {
@@ -205,20 +219,6 @@ func (p *Pattern) Find(word string, n int) [][]int {
 	}
 
 	return matches
-}
-
-func (Pattern) pickStartStop(m []int) (int, int) {
-	start := m[5]
-	if start == -1 {
-		start = m[0]
-	}
-
-	stop := m[len(m)-4]
-	if stop == -1 {
-		stop = m[1]
-	}
-
-	return start, stop
 }
 
 // Replace finds matches and replaces by the given RPattern.
