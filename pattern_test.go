@@ -373,6 +373,18 @@ func TestReplace(t *testing.T) {
 	assert.Equal(t, "a_bca_", p.Replace("abcbcabc", rp, -1))
 }
 
+func TestReplaceWithVars(t *testing.T) {
+	vars := map[string][]string{
+		"abc": []string{"a", "b", "c"},
+		"xyz": []string{"x", "y", "z"},
+	}
+
+	p, _ := NewPattern("<abc>", nil, vars)
+	rp := NewRPattern("<xyz>", nil, vars)
+
+	assert.Equal(t, "xysolutely", p.Replace("absolutely", rp, -1))
+}
+
 // -----------------------------------------------------------------------------
 // Benchmarks
 
@@ -417,4 +429,11 @@ func ExamplePattern_Find() {
 	p, _ := NewPattern("^he(l+o){,}", nil, nil)
 	fmt.Println(p.Find("hello, helo, hellllo", -1))
 	// Output: [[0 5 2 5] [7 11 9 11]]
+}
+
+func ExamplePattern_Replace() {
+	p, _ := NewPattern("foo{~bar}", nil, nil)
+	rp := NewRPattern("xxx", nil, nil)
+	fmt.Println(p.Replace("foo foobar foobaz", rp, -1))
+	// Output: xxx foobar xxxbaz
 }
