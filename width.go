@@ -4,9 +4,9 @@ import (
 	"regexp/syntax"
 )
 
-// calcWidthRange calculates the maximum width of the given Regexp pattern.
+// calcWidthRange calculates the range of the width for a Regexp pattern.
 //
-// The return value -1 means than unlimited.
+// The range (min, max) is inclusive. -1 at the max means that unlimited.
 //
 func calcWidthRange(expr string) [2]int {
 	re, err := syntax.Parse(expr, syntax.Perl)
@@ -19,7 +19,8 @@ func calcWidthRange(expr string) [2]int {
 	return _regexpWidthRange(re)
 }
 
-// _regexpWidthRange returns the maximum width from a parsed Regexp.
+// _regexpWidthRange calculates the range of the width for a parsed Regexp
+// pattern. It is used for calcWidthRange internally.
 func _regexpWidthRange(re *syntax.Regexp) [2]int {
 	switch re.Op {
 
