@@ -20,4 +20,6 @@ func TestCalcMaxWidth(t *testing.T) {
 	assert.Equal(t, [2]int{1, -1}, calcWidthRange(`.+`))
 	assert.Equal(t, [2]int{0, -1}, calcWidthRange(`.*?`))
 	assert.Equal(t, [2]int{1, -1}, calcWidthRange(`.+?`))
+	assert.Equal(t, [2]int{1, -1}, calcWidthRange(`(.+|...)`))
+	assert.Equal(t, [2]int{4, -1}, calcWidthRange(`.+...`))
 }

@@ -88,8 +88,14 @@ func _regexpWidthRange(re *syntax.Regexp) [2]int {
 
 		for _, sub := range re.Sub {
 			nn := _regexpWidthRange(sub)
+
 			min += nn[0]
-			max += nn[1]
+
+			if nn[1] == -1 {
+				max = -1
+			} else if max != -1 {
+				max += nn[1]
+			}
 		}
 
 		return [2]int{min, max}
@@ -101,10 +107,12 @@ func _regexpWidthRange(re *syntax.Regexp) [2]int {
 
 		for _, sub := range re.Sub {
 			nn := _regexpWidthRange(sub)
+
 			if nn[0] < min || min == -1 {
 				min = nn[0]
 			}
-			if nn[1] > max {
+
+			if nn[1] > max && max != -1 || nn[1] == -1 {
 				max = nn[1]
 			}
 		}
