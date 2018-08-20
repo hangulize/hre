@@ -109,10 +109,8 @@ func expandLookahead(expr string) (string, string, int, error) {
 	edgeExpr = noCapture(edgeExpr)
 	lookExpr = noCapture(lookExpr)
 
+	// Negative Lookahead
 	if strings.HasPrefix(lookExpr, `~`) {
-		// negative lookahead
-		negAExpr = fmt.Sprintf(`^(%s)`, lookExpr[1:])
-
 		// {~notprefix}$ (edge after negative lookahead)
 		// cannot be resolved in linear time.
 		if edgeExpr != `` {
@@ -123,8 +121,10 @@ func expandLookahead(expr string) (string, string, int, error) {
 		re, err := syntax.Parse(negAExpr, syntax.Perl)
 		if err == nil {
 			negAWidth = RegexpMaxWidth(re)
-			lookExpr = strings.Repeat(`.?`, negAWidth)
 		}
+
+		negAExpr = fmt.Sprintf(`^(%s)`, lookExpr[1:])
+		lookExpr = ``
 	}
 
 	// Replace lookahead with 2 parentheses:
@@ -158,10 +158,8 @@ func expandLookbehind(expr string) (string, string, int, error) {
 	edgeExpr = noCapture(edgeExpr)
 	lookExpr = noCapture(lookExpr)
 
+	// Negative Lookbehind
 	if strings.HasPrefix(lookExpr, `~`) {
-		// negative lookbehind
-		negBExpr = fmt.Sprintf(`(%s)$`, lookExpr[1:])
-
 		// ^{~notsuffix} (edge before negative lookbehind)
 		// cannot be resolved in linear time.
 		if edgeExpr != `` {
@@ -172,8 +170,10 @@ func expandLookbehind(expr string) (string, string, int, error) {
 		re, err := syntax.Parse(negBExpr, syntax.Perl)
 		if err == nil {
 			negBWidth = RegexpMaxWidth(re)
-			lookExpr = strings.Repeat(`.?`, negBWidth)
 		}
+
+		negBExpr = fmt.Sprintf(`(%s)$`, lookExpr[1:])
+		lookExpr = ``
 	}
 
 	// Replace lookbehind with 2 parentheses:
