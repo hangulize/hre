@@ -169,15 +169,10 @@ func expandLookbehind(expr string) (string, string, int, error) {
 			return ``, ``, 0, err
 		}
 
-		if edgeExpr == `` {
-			re, err := syntax.Parse(negBExpr, syntax.Perl)
-			if err == nil {
-				negBWidth = RegexpMaxWidth(re)
-				lookExpr = strings.Repeat(`.?`, negBWidth)
-			}
-		} else {
-			negBWidth = -1
-			lookExpr = `.*?`
+		re, err := syntax.Parse(negBExpr, syntax.Perl)
+		if err == nil {
+			negBWidth = RegexpMaxWidth(re)
+			lookExpr = strings.Repeat(`.?`, negBWidth)
 		}
 	}
 
