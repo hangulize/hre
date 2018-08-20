@@ -2,6 +2,7 @@ package hre
 
 import (
 	"fmt"
+	"regexp/syntax"
 	"strings"
 )
 
@@ -104,8 +105,11 @@ func expandLookahead(expr string) (string, string, int) {
 		negAExpr = fmt.Sprintf(`^(%s)`, lookExpr[1:])
 
 		if edgeExpr == `` {
-			negAWidth = calcMaxWidth(negAExpr)
-			lookExpr = strings.Repeat(`.?`, negAWidth)
+			re, err := syntax.Parse(negAExpr, syntax.Perl)
+			if err == nil {
+				negAWidth = RegexpMaxWidth(re)
+				lookExpr = strings.Repeat(`.?`, negAWidth)
+			}
 		} else {
 			negAWidth = -1
 			lookExpr = `.*?`
@@ -148,8 +152,11 @@ func expandLookbehind(expr string) (string, string, int) {
 		negBExpr = fmt.Sprintf(`(%s)$`, lookExpr[1:])
 
 		if edgeExpr == `` {
-			negBWidth = calcMaxWidth(negBExpr)
-			lookExpr = strings.Repeat(`.?`, negBWidth)
+			re, err := syntax.Parse(negBExpr, syntax.Perl)
+			if err == nil {
+				negBWidth = RegexpMaxWidth(re)
+				lookExpr = strings.Repeat(`.?`, negBWidth)
+			}
 		} else {
 			negBWidth = -1
 			lookExpr = `.*?`
