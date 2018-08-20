@@ -4,24 +4,8 @@ import (
 	"regexp/syntax"
 )
 
-// calcMaxWidth calculates the range of the width for a Regexp pattern.
-//
-// The range (min, max) is inclusive. -1 at the max means that unlimited.
-//
-func calcMaxWidth(expr string) int {
-	re, err := syntax.Parse(expr, syntax.Perl)
-
-	if err != nil {
-		// Failed to parse Regexp.
-		return 0
-	}
-
-	return _regexpMaxWidth(re)
-}
-
-// _regexpMaxWidth calculates the range of the width for a parsed Regexp
-// pattern. It is used for calcWidthRange internally.
-func _regexpMaxWidth(re *syntax.Regexp) int {
+// RegexpMaxWidth calculates the maximum width of a parsed Regexp pattern.
+func RegexpMaxWidth(re *syntax.Regexp) int {
 	switch re.Op {
 
 	case syntax.OpNoMatch, syntax.OpEmptyMatch:
@@ -54,7 +38,7 @@ func _regexpMaxWidth(re *syntax.Regexp) int {
 
 	case syntax.OpCapture:
 		// capturing subexpression with index Cap, optional name Name
-		return _regexpMaxWidth(re.Sub0[0])
+		return RegexpMaxWidth(re.Sub0[0])
 
 	case syntax.OpStar, syntax.OpPlus:
 		// matches Sub[0] zero or more times
@@ -63,21 +47,21 @@ func _regexpMaxWidth(re *syntax.Regexp) int {
 
 	case syntax.OpQuest:
 		// matches Sub[0] zero or one times
-		return _regexpMaxWidth(re.Sub0[0])
+		return RegexpMaxWidth(re.Sub0[0])
 
 	case syntax.OpRepeat:
 		// matches Sub[0] at least Min times, at most Max (Max == -1 is no limit)
 		if re.Max == -1 {
 			return -1
 		}
-		return re.Max * _regexpMaxWidth(re.Sub0[0])
+		return re.Max * RegexpMaxWidth(re.Sub0[0])
 
 	case syntax.OpConcat:
 		// matches concatenation of Subs
 		var total int
 
 		for _, sub := range re.Sub {
-			n := _regexpMaxWidth(sub)
+			n := RegexpMaxWidth(sub)
 
 			if n == -1 {
 				return -1
@@ -93,7 +77,7 @@ func _regexpMaxWidth(re *syntax.Regexp) int {
 		var max int
 
 		for _, sub := range re.Sub {
-			n := _regexpMaxWidth(sub)
+			n := RegexpMaxWidth(sub)
 
 			if n == -1 {
 				return -1
