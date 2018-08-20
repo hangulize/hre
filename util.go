@@ -22,6 +22,15 @@ func substr(s string, start int, stop int) string {
 	if start < 0 || stop < 0 {
 		return ""
 	}
+
+	n := len(s)
+	if start >= n {
+		return ""
+	}
+	if stop > n {
+		stop = n
+	}
+
 	if stop-start > 0 {
 		return s[start:stop]
 	}

@@ -9,7 +9,7 @@ import (
 //  └─┴─ (1)
 var reVar = re(`<(.+?)>`)
 
-// expandVars replaces <var> to corresponding content regexp such as (a|b|c).
+// expandVars replaces <var> to corresponding content Regexp such as (a|b|c).
 func expandVars(expr string, vars map[string][]string) (string, [][]string) {
 	var usedVars [][]string
 
@@ -19,7 +19,7 @@ func expandVars(expr string, vars map[string][]string) (string, [][]string) {
 
 		usedVars = append(usedVars, vals)
 
-		// Build as RegExp like /(a|b|c)/.
+		// Build as Regexp like /(a|b|c)/.
 		escapedVals := make([]string, len(vals))
 		for i, val := range vals {
 			escapedVals[i] = regexp.QuoteMeta(val)
