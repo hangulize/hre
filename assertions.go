@@ -62,21 +62,21 @@ var (
 	`)
 )
 
-func expandLookaround(expr string) (string, string, string, error) {
-	posExpr, negAExpr := expandLookahead(expr)
-	posExpr, negBExpr := expandLookbehind(posExpr)
+func expandLookaround(expr string) (string, string, string, int, int, error) {
+	posExpr, negAExpr, negAWidth := expandLookahead(expr)
+	posExpr, negBExpr, negBWidth := expandLookbehind(posExpr)
 
 	err := mustNoZeroWidth(posExpr)
 	if err != nil {
-		return ``, ``, ``, err
+		return ``, ``, ``, 0, 0, err
 	}
 
-	return posExpr, negAExpr, negBExpr, nil
+	return posExpr, negAExpr, negBExpr, negAWidth, negBWidth, nil
 }
 
 // Lookahead: {...} on the right-side.
 // negExpr should be passed from expandLookbehind.
-func expandLookahead(expr string) (string, string) {
+func expandLookahead(expr string) (string, string, int) {
 	// han{gul}$
 	//  │   │  └─ edge
 	//  │   └─ look
@@ -84,6 +84,7 @@ func expandLookahead(expr string) (string, string) {
 
 	posExpr := expr
 	negAExpr := ``
+	negAWidth := 0
 
 	// This pattern always matches.
 	m := reLookahead.FindStringSubmatchIndex(posExpr)
@@ -101,18 +102,25 @@ func expandLookahead(expr string) (string, string) {
 	if strings.HasPrefix(lookExpr, `~`) {
 		// negative lookahead
 		negAExpr = fmt.Sprintf(`^(%s)`, lookExpr[1:])
-		lookExpr = `.*?`
+
+		if edgeExpr == `` {
+			negAWidth = calcMaxWidth(negAExpr)
+			lookExpr = strings.Repeat(`.?`, negAWidth)
+		} else {
+			negAWidth = -1
+			lookExpr = `.*?`
+		}
 	}
 
 	// Replace lookahead with 2 parentheses:
 	//  han(gul)($)
 	posExpr = fmt.Sprintf(`%s(%s)(%s)`, otherExpr, lookExpr, edgeExpr)
 
-	return posExpr, negAExpr
+	return posExpr, negAExpr, negAWidth
 }
 
 // Lookbehind: {...} on the left-side.
-func expandLookbehind(expr string) (string, string) {
+func expandLookbehind(expr string) (string, string, int) {
 	// ^{han}gul
 	// │  │   └─ other
 	// │  └─ look
@@ -120,6 +128,7 @@ func expandLookbehind(expr string) (string, string) {
 
 	posExpr := expr
 	negBExpr := ``
+	negBWidth := 0
 
 	// This pattern always matches.
 	m := reLookbehind.FindStringSubmatchIndex(posExpr)
@@ -137,14 +146,21 @@ func expandLookbehind(expr string) (string, string) {
 	if strings.HasPrefix(lookExpr, `~`) {
 		// negative lookbehind
 		negBExpr = fmt.Sprintf(`(%s)$`, lookExpr[1:])
-		lookExpr = `.*?`
+
+		if edgeExpr == `` {
+			negBWidth = calcMaxWidth(negBExpr)
+			lookExpr = strings.Repeat(`.?`, negBWidth)
+		} else {
+			negBWidth = -1
+			lookExpr = `.*?`
+		}
 	}
 
 	// Replace lookbehind with 2 parentheses:
 	//  (^)(han)gul
 	posExpr = fmt.Sprintf(`(%s)(%s)%s`, edgeExpr, lookExpr, otherExpr)
 
-	return posExpr, negBExpr
+	return posExpr, negBExpr, negBWidth
 }
 
 func mustNoZeroWidth(expr string) error {
