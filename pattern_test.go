@@ -305,6 +305,12 @@ func TestMultipleNegativeLookbehind(t *testing.T) {
 	assert.Equal(t, [][]int{[]int{3, 6}, []int{12, 15}}, p.Find(w, -1))
 }
 
+func TestNegativeLookaroundWidth(t *testing.T) {
+	p := fixturePattern("{~<vowels>}foo{~@}")
+	assert.Equal(t, 1, p.negAWidth)
+	assert.Equal(t, 1, p.negBWidth)
+}
+
 func TestMalformedPattern(t *testing.T) {
 	p, err := NewPattern(`{a} {b} {c}`, nil, nil)
 	assert.Error(t, err, p.Explain())
