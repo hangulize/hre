@@ -43,6 +43,9 @@ type Pattern struct {
 	negA *regexp.Regexp // negative ahead regexp
 	negB *regexp.Regexp // negative behind regexp
 
+	negAWidth int // max width of nagative lookahead
+	negBWidth int // max width of nagative lookbehind
+
 	// Letters used in the positive/negative regexps.
 	letters stringset.StringSet
 
@@ -74,7 +77,8 @@ func NewPattern(
 
 	reExpr, usedVars := expandVars(reExpr, vars)
 
-	reExpr, negAExpr, negBExpr, err := expandLookaround(reExpr)
+	reExpr, negAExpr, negBExpr, negAWidth, negBWidth, err :=
+		expandLookaround(reExpr)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to compile pattern: %#v", expr)
 	}
@@ -111,7 +115,7 @@ func NewPattern(
 		}
 	}
 
-	p := &Pattern{expr, re, negA, negB, letters, usedVars}
+	p := &Pattern{expr, re, negA, negB, negAWidth, negBWidth, letters, usedVars}
 	return p, nil
 }
 
@@ -197,14 +201,32 @@ func (p *Pattern) Find(word string, n int) [][]int {
 
 		// Test negative lookahead.
 		if p.negA != nil {
-			if p.negA.MatchString(substr(word, m[lenM-4], length)) {
+			var negAStart, negAStop int
+
+			negAStart = m[lenM-4]
+			if p.negAWidth == -1 {
+				negAStop = len(word)
+			} else {
+				negAStop = m[lenM-4] + p.negAWidth
+			}
+
+			if p.negA.MatchString(substr(word, negAStart, negAStop)) {
 				continue
 			}
 		}
 
 		// Test negative lookbehind.
 		if p.negB != nil {
-			if p.negB.MatchString(substr(word, 0, m[5])) {
+			var negBStart, negBStop int
+
+			negBStop = m[5]
+			if p.negBWidth == -1 {
+				negBStart = 0
+			} else {
+				negBStart = m[5] - p.negBWidth
+			}
+
+			if p.negB.MatchString(substr(word, negBStart, negBStop)) {
 				continue
 			}
 		}
