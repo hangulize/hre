@@ -68,7 +68,7 @@ func NewPattern(
 		return nil, errors.New("empty pattern not allowed")
 	}
 	if hasRepeatition(expr) {
-		return nil, errors.New("Repeatition (* + ?) not allowed")
+		return nil, errors.New("repeatition (* + ?) not allowed")
 	}
 
 	reExpr := expr
