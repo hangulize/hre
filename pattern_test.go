@@ -9,18 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func fixturePattern(expr string) *Pattern {
-	macros := map[string]string{
-		"@": "<vowels>",
-	}
-	vars := map[string][]string{
-		"vowels": []string{"a", "e", "i", "o", "u"},
-		"abc":    []string{"a", "b", "c"},
-		"def":    []string{"d", "e", "f"},
-	}
-	return mustNewPattern(expr, macros, vars)
-}
-
 func TestMetaPatterns(t *testing.T) {
 	assert.True(t, reLookbehind.MatchString(""))
 	assert.True(t, reLookahead.MatchString(""))
