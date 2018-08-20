@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp/syntax"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 var (
@@ -64,10 +66,17 @@ var (
 )
 
 func expandLookaround(expr string) (string, string, string, int, int, error) {
-	posExpr, negAExpr, negAWidth := expandLookahead(expr)
-	posExpr, negBExpr, negBWidth := expandLookbehind(posExpr)
+	posExpr, negAExpr, negAWidth, err := expandLookahead(expr)
+	if err != nil {
+		return ``, ``, ``, 0, 0, err
+	}
 
-	err := mustNoZeroWidth(posExpr)
+	posExpr, negBExpr, negBWidth, err := expandLookbehind(posExpr)
+	if err != nil {
+		return ``, ``, ``, 0, 0, err
+	}
+
+	err = mustNoZeroWidth(posExpr)
 	if err != nil {
 		return ``, ``, ``, 0, 0, err
 	}
@@ -77,7 +86,7 @@ func expandLookaround(expr string) (string, string, string, int, int, error) {
 
 // Lookahead: {...} on the right-side.
 // negExpr should be passed from expandLookbehind.
-func expandLookahead(expr string) (string, string, int) {
+func expandLookahead(expr string) (string, string, int, error) {
 	// han{gul}$
 	//  │   │  └─ edge
 	//  │   └─ look
@@ -104,15 +113,17 @@ func expandLookahead(expr string) (string, string, int) {
 		// negative lookahead
 		negAExpr = fmt.Sprintf(`^(%s)`, lookExpr[1:])
 
-		if edgeExpr == `` {
-			re, err := syntax.Parse(negAExpr, syntax.Perl)
-			if err == nil {
-				negAWidth = RegexpMaxWidth(re)
-				lookExpr = strings.Repeat(`.?`, negAWidth)
-			}
-		} else {
-			negAWidth = -1
-			lookExpr = `.*?`
+		// {~notprefix}$ (edge after negative lookahead)
+		// cannot be resolved in linear time.
+		if edgeExpr != `` {
+			err := errors.New("$ after negative lookahead not allowed")
+			return ``, ``, 0, err
+		}
+
+		re, err := syntax.Parse(negAExpr, syntax.Perl)
+		if err == nil {
+			negAWidth = RegexpMaxWidth(re)
+			lookExpr = strings.Repeat(`.?`, negAWidth)
 		}
 	}
 
@@ -120,11 +131,11 @@ func expandLookahead(expr string) (string, string, int) {
 	//  han(gul)($)
 	posExpr = fmt.Sprintf(`%s(%s)(%s)`, otherExpr, lookExpr, edgeExpr)
 
-	return posExpr, negAExpr, negAWidth
+	return posExpr, negAExpr, negAWidth, nil
 }
 
 // Lookbehind: {...} on the left-side.
-func expandLookbehind(expr string) (string, string, int) {
+func expandLookbehind(expr string) (string, string, int, error) {
 	// ^{han}gul
 	// │  │   └─ other
 	// │  └─ look
@@ -151,6 +162,13 @@ func expandLookbehind(expr string) (string, string, int) {
 		// negative lookbehind
 		negBExpr = fmt.Sprintf(`(%s)$`, lookExpr[1:])
 
+		// ^{~notsuffix} (edge before negative lookbehind)
+		// cannot be resolved in linear time.
+		if edgeExpr != `` {
+			err := errors.New("^ before negative lookbehind not allowed")
+			return ``, ``, 0, err
+		}
+
 		if edgeExpr == `` {
 			re, err := syntax.Parse(negBExpr, syntax.Perl)
 			if err == nil {
@@ -167,7 +185,7 @@ func expandLookbehind(expr string) (string, string, int) {
 	//  (^)(han)gul
 	posExpr = fmt.Sprintf(`(%s)(%s)%s`, edgeExpr, lookExpr, otherExpr)
 
-	return posExpr, negBExpr, negBWidth
+	return posExpr, negBExpr, negBWidth, nil
 }
 
 func mustNoZeroWidth(expr string) error {
