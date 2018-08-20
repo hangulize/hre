@@ -81,16 +81,6 @@ func TestLookbehind(t *testing.T) {
 		x, "ngul",
 		x, "mogul",
 	})
-
-	p = fixturePattern(`^{han}gul`)
-	assertFirstMatch(t, p, []string{
-		o, "hangul",
-		"      ^^^",
-		o, "hangul__",
-		"      ^^^  ",
-		x, "__hangul",
-		x, "__hangul__",
-	})
 }
 
 func TestLookahead(t *testing.T) {
@@ -105,16 +95,6 @@ func TestLookahead(t *testing.T) {
 		x, "han",
 		x, "hang",
 		x, "hanja",
-	})
-
-	p = fixturePattern(`han{gul}$`)
-	assertFirstMatch(t, p, []string{
-		o, "hangul",
-		"   ^^^   ",
-		o, "__hangul",
-		"     ^^^   ",
-		x, "hangul__",
-		x, "__hangul__",
 	})
 }
 
@@ -160,9 +140,38 @@ func TestNegativeLookahead(t *testing.T) {
 	})
 }
 
-func TestNegativeLookaroundAndEdge(t *testing.T) {
-	assert.Panics(t, func() { fixturePattern(`^{~foo}bar`) })
-	assert.Panics(t, func() { fixturePattern(`bar{~foo}$`) })
+func TestLookaroundAndEdge(t *testing.T) {
+	var p *Pattern
+
+	p = fixturePattern(`foo{bar}$`)
+	assertFirstMatch(t, p, []string{
+		x, "foobar",
+		x, " foobar ",
+		x, "foo",
+	})
+
+	p = fixturePattern(`foo{~bar}$`)
+	assertFirstMatch(t, p, []string{
+		x, "foobar",
+		x, " foobar ",
+		o, "foo",
+		"   ^^^",
+	})
+
+	p = fixturePattern(`^{foo}bar`)
+	assertFirstMatch(t, p, []string{
+		x, "foobar",
+		x, " foobar ",
+		x, "bar",
+	})
+
+	p = fixturePattern(`^{~foo}bar`)
+	assertFirstMatch(t, p, []string{
+		x, "foobar",
+		x, " foobar ",
+		o, "bar",
+		"   ^^^",
+	})
 }
 
 func TestLookaround(t *testing.T) {

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"regexp/syntax"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 var (
@@ -66,17 +64,10 @@ var (
 )
 
 func expandLookaround(expr string) (string, string, string, int, int, error) {
-	posExpr, negAExpr, negAWidth, err := expandLookahead(expr)
-	if err != nil {
-		return ``, ``, ``, 0, 0, err
-	}
+	posExpr, negAExpr, negAWidth := expandLookahead(expr)
+	posExpr, negBExpr, negBWidth := expandLookbehind(posExpr)
 
-	posExpr, negBExpr, negBWidth, err := expandLookbehind(posExpr)
-	if err != nil {
-		return ``, ``, ``, 0, 0, err
-	}
-
-	err = mustNoZeroWidth(posExpr)
+	err := mustNoZeroWidth(posExpr)
 	if err != nil {
 		return ``, ``, ``, 0, 0, err
 	}
@@ -84,17 +75,58 @@ func expandLookaround(expr string) (string, string, string, int, int, error) {
 	return posExpr, negAExpr, negBExpr, negAWidth, negBWidth, nil
 }
 
+func dissolveLookaround(
+	format string,
+	lookExpr string,
+	hasEdge bool,
+) (string, string, int, bool) {
+	// No Lookaround
+	if lookExpr == `` {
+		return ``, ``, 0, true
+	}
+
+	// Negative Lookaround
+	isNeg := strings.HasPrefix(lookExpr, `~`)
+
+	if isNeg {
+		var (
+			negExpr  string
+			negWidth int
+		)
+
+		if !hasEdge {
+			negExpr = fmt.Sprintf(format, lookExpr[1:])
+
+			re, err := syntax.Parse(negExpr, syntax.Perl)
+			if err != nil {
+				return ``, ``, 0, false
+			}
+			negWidth = RegexpMaxWidth(re)
+		}
+
+		return ``, negExpr, negWidth, true
+	}
+
+	// Positive Lookaround
+
+	if hasEdge {
+		// Positive lookaround with edge has a paradox.
+		// It wouldn't match on anything.
+		return ``, ``, 0, false
+	}
+
+	return lookExpr, ``, 0, true
+}
+
 // Lookahead: {...} on the right-side.
 // negExpr should be passed from expandLookbehind.
-func expandLookahead(expr string) (string, string, int, error) {
+func expandLookahead(expr string) (string, string, int) {
 	// han{gul}$
 	//  │   │  └─ edge
 	//  │   └─ look
 	//  └─ other
 
 	posExpr := expr
-	negAExpr := ``
-	negAWidth := 0
 
 	// This pattern always matches.
 	m := reLookahead.FindStringSubmatchIndex(posExpr)
@@ -109,41 +141,28 @@ func expandLookahead(expr string) (string, string, int, error) {
 	edgeExpr = noCapture(edgeExpr)
 	lookExpr = noCapture(lookExpr)
 
-	// Negative Lookahead
-	if strings.HasPrefix(lookExpr, `~`) {
-		// {~notprefix}$ (edge after negative lookahead)
-		// cannot be resolved in linear time.
-		if edgeExpr != `` {
-			err := errors.New("$ after negative lookahead not allowed")
-			return ``, ``, 0, err
-		}
-
-		re, err := syntax.Parse(negAExpr, syntax.Perl)
-		if err == nil {
-			negAWidth = RegexpMaxWidth(re)
-		}
-
-		negAExpr = fmt.Sprintf(`^(%s)`, lookExpr[1:])
-		lookExpr = ``
+	// Dissolve lookahead.
+	lookExpr, negAExpr, negAWidth, ok :=
+		dissolveLookaround(`^(%s)`, lookExpr, edgeExpr != ``)
+	if !ok {
+		return `.^^`, ``, 0
 	}
 
 	// Replace lookahead with 2 parentheses:
 	//  han(gul)($)
 	posExpr = fmt.Sprintf(`%s(%s)(%s)`, otherExpr, lookExpr, edgeExpr)
 
-	return posExpr, negAExpr, negAWidth, nil
+	return posExpr, negAExpr, negAWidth
 }
 
 // Lookbehind: {...} on the left-side.
-func expandLookbehind(expr string) (string, string, int, error) {
+func expandLookbehind(expr string) (string, string, int) {
 	// ^{han}gul
 	// │  │   └─ other
 	// │  └─ look
 	// └─ edge
 
 	posExpr := expr
-	negBExpr := ``
-	negBWidth := 0
 
 	// This pattern always matches.
 	m := reLookbehind.FindStringSubmatchIndex(posExpr)
@@ -158,29 +177,18 @@ func expandLookbehind(expr string) (string, string, int, error) {
 	edgeExpr = noCapture(edgeExpr)
 	lookExpr = noCapture(lookExpr)
 
-	// Negative Lookbehind
-	if strings.HasPrefix(lookExpr, `~`) {
-		// ^{~notsuffix} (edge before negative lookbehind)
-		// cannot be resolved in linear time.
-		if edgeExpr != `` {
-			err := errors.New("^ before negative lookbehind not allowed")
-			return ``, ``, 0, err
-		}
-
-		re, err := syntax.Parse(negBExpr, syntax.Perl)
-		if err == nil {
-			negBWidth = RegexpMaxWidth(re)
-		}
-
-		negBExpr = fmt.Sprintf(`(%s)$`, lookExpr[1:])
-		lookExpr = ``
+	// Dissolve lookbehind.
+	lookExpr, negBExpr, negBWidth, ok :=
+		dissolveLookaround(`(%s)$`, lookExpr, edgeExpr != ``)
+	if !ok {
+		return `.^^`, ``, 0
 	}
 
 	// Replace lookbehind with 2 parentheses:
 	//  (^)(han)gul
 	posExpr = fmt.Sprintf(`(%s)(%s)%s`, edgeExpr, lookExpr, otherExpr)
 
-	return posExpr, negBExpr, negBWidth, nil
+	return posExpr, negBExpr, negBWidth
 }
 
 func mustNoZeroWidth(expr string) error {
