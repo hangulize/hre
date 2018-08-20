@@ -6,9 +6,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHasDuplication(t *testing.T) {
-	assert.True(t, hasDuplication(`a*`))
-	assert.True(t, hasDuplication(`b+`))
-	assert.True(t, hasDuplication(`c?`))
-	assert.False(t, hasDuplication(`d|e`))
+func TestHasRepeatition(t *testing.T) {
+	assert.True(t, hasRepeatition(`a*`))
+	assert.True(t, hasRepeatition(`b+`))
+	assert.True(t, hasRepeatition(`c?`))
+	assert.False(t, hasRepeatition(`d|e`))
+	assert.False(t, hasRepeatition(`...`))
 }
