@@ -35,5 +35,4 @@ func TestRegexpMaxWidth(t *testing.T) {
 	assert.Equal(t, -1, regexpMaxWidth(`.+?`))
 	assert.Equal(t, -1, regexpMaxWidth(`(.+|...)`))
 	assert.Equal(t, -1, regexpMaxWidth(`.+...`))
-	assert.Equal(t, 0, regexpMaxWidth(`??INVALID??REGEXP??`))
 }
