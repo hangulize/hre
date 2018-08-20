@@ -12,6 +12,7 @@ func TestCalcMaxWidth(t *testing.T) {
 	assert.Equal(t, 1, calcMaxWidth(`a|b`))
 	assert.Equal(t, 1, calcMaxWidth(`((a)|b)`))
 	assert.Equal(t, 1, calcMaxWidth(`((a)|b)?`))
+	assert.Equal(t, 3, calcMaxWidth(`a|bc|def|g|hi|jkl`))
 	assert.Equal(t, 1, calcMaxWidth(`[abcde]`))
 	assert.Equal(t, 1, calcMaxWidth(`[\]abcde]`))
 	assert.Equal(t, 1, calcMaxWidth(`[(abcde)]`))
@@ -22,4 +23,5 @@ func TestCalcMaxWidth(t *testing.T) {
 	assert.Equal(t, -1, calcMaxWidth(`.+?`))
 	assert.Equal(t, -1, calcMaxWidth(`(.+|...)`))
 	assert.Equal(t, -1, calcMaxWidth(`.+...`))
+	assert.Equal(t, 0, calcMaxWidth(`??INVALID??REGEXP??`))
 }
