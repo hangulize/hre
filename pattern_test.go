@@ -9,18 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func fixturePattern(expr string) *Pattern {
-	macros := map[string]string{
-		"@": "<vowels>",
-	}
-	vars := map[string][]string{
-		"vowels": []string{"a", "e", "i", "o", "u"},
-		"abc":    []string{"a", "b", "c"},
-		"def":    []string{"d", "e", "f"},
-	}
-	return mustNewPattern(expr, macros, vars)
-}
-
 func TestMetaPatterns(t *testing.T) {
 	assert.True(t, reLookbehind.MatchString(""))
 	assert.True(t, reLookahead.MatchString(""))
@@ -93,16 +81,6 @@ func TestLookbehind(t *testing.T) {
 		x, "ngul",
 		x, "mogul",
 	})
-
-	p = fixturePattern(`^{han}gul`)
-	assertFirstMatch(t, p, []string{
-		o, "hangul",
-		"      ^^^",
-		o, "hangul__",
-		"      ^^^  ",
-		x, "__hangul",
-		x, "__hangul__",
-	})
 }
 
 func TestLookahead(t *testing.T) {
@@ -117,16 +95,6 @@ func TestLookahead(t *testing.T) {
 		x, "han",
 		x, "hang",
 		x, "hanja",
-	})
-
-	p = fixturePattern(`han{gul}$`)
-	assertFirstMatch(t, p, []string{
-		o, "hangul",
-		"   ^^^   ",
-		o, "__hangul",
-		"     ^^^   ",
-		x, "hangul__",
-		x, "__hangul__",
 	})
 }
 
@@ -172,9 +140,38 @@ func TestNegativeLookahead(t *testing.T) {
 	})
 }
 
-func TestNegativeLookaroundAndEdge(t *testing.T) {
-	assert.Panics(t, func() { fixturePattern(`^{~foo}bar`) })
-	assert.Panics(t, func() { fixturePattern(`bar{~foo}$`) })
+func TestLookaroundAndEdge(t *testing.T) {
+	var p *Pattern
+
+	p = fixturePattern(`foo{bar}$`)
+	assertFirstMatch(t, p, []string{
+		x, "foobar",
+		x, " foobar ",
+		x, "foo",
+	})
+
+	p = fixturePattern(`foo{~bar}$`)
+	assertFirstMatch(t, p, []string{
+		x, "foobar",
+		x, " foobar ",
+		o, "foo",
+		"   ^^^",
+	})
+
+	p = fixturePattern(`^{foo}bar`)
+	assertFirstMatch(t, p, []string{
+		x, "foobar",
+		x, " foobar ",
+		x, "bar",
+	})
+
+	p = fixturePattern(`^{~foo}bar`)
+	assertFirstMatch(t, p, []string{
+		x, "foobar",
+		x, " foobar ",
+		o, "bar",
+		"   ^^^",
+	})
 }
 
 func TestLookaround(t *testing.T) {
@@ -315,6 +312,12 @@ func TestMultipleNegativeLookbehind(t *testing.T) {
 	p := fixturePattern("{~foo}foo")
 	w := "barfoofoobarfoo"
 	assert.Equal(t, [][]int{[]int{3, 6}, []int{12, 15}}, p.Find(w, -1))
+}
+
+func TestNegativeLookaroundWidth(t *testing.T) {
+	p := fixturePattern("{~<vowels>}foo{~@}")
+	assert.Equal(t, 1, p.negAWidth)
+	assert.Equal(t, 1, p.negBWidth)
 }
 
 func TestMalformedPattern(t *testing.T) {

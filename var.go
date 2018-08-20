@@ -15,7 +15,7 @@ func expandVars(expr string, vars map[string][]string) (string, [][]string) {
 
 	expr = reVar.ReplaceAllStringFunc(expr, func(varExpr string) string {
 		// Retrieve variable name and values.
-		name, vals := getVar(varExpr, vars)
+		_, vals := getVar(varExpr, vars)
 
 		usedVars = append(usedVars, vals)
 
@@ -25,8 +25,6 @@ func expandVars(expr string, vars map[string][]string) (string, [][]string) {
 			escapedVals[i] = regexp.QuoteMeta(val)
 		}
 
-		// return `(?P<` + name + `>` + strings.Join(escapedVals, `|`) + `)`
-		_ = name
 		return `(` + strings.Join(escapedVals, `|`) + `)`
 	})
 

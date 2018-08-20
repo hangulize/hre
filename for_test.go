@@ -25,8 +25,17 @@ func mustNewPattern(
 	return p
 }
 
-// -----------------------------------------------------------------------------
-// match assertion
+func fixturePattern(expr string) *Pattern {
+	macros := map[string]string{
+		"@": "<vowels>",
+	}
+	vars := map[string][]string{
+		"vowels": []string{"a", "e", "i", "o", "u"},
+		"abc":    []string{"a", "b", "c"},
+		"def":    []string{"d", "e", "f"},
+	}
+	return mustNewPattern(expr, macros, vars)
+}
 
 const o = "MUST_MATCH"
 const x = ""
