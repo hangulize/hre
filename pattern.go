@@ -139,6 +139,16 @@ func (p *Pattern) Explain() string {
 	)
 }
 
+// NegativeLookaroundWidths returns the potential widths of negative lookahead
+// and negative lookbehind.
+//
+// -1 means unlimited. An unlimited negative lookround width leads to a
+// polynominal time to match. Otherwise, the match consumes only a linear time.
+func (p *Pattern) NegativeLookaroundWidths() (negAWidth int, negBWidth int) {
+	negAWidth, negBWidth = p.negAWidth, p.negBWidth
+	return
+}
+
 // -----------------------------------------------------------------------------
 
 func pickStartStop(m []int) (int, int) {
