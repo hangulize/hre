@@ -54,7 +54,7 @@ type Pattern struct {
 }
 
 func (p *Pattern) String() string {
-	return fmt.Sprintf(`/%s/`, p.expr)
+	return fmt.Sprintf(`"%s"`, p.expr)
 }
 
 // -----------------------------------------------------------------------------
@@ -137,6 +137,16 @@ func (p *Pattern) Explain() string {
 		"expr:/%s/, re:/%s/, negA:/%s/, negB:/%s/",
 		p.expr, p.re, p.negA, p.negB,
 	)
+}
+
+// NegativeLookaroundWidths returns the potential widths of negative lookahead
+// and negative lookbehind.
+//
+// -1 means unlimited. An unlimited negative lookround width leads to a
+// polynominal time to match. Otherwise, the match consumes only a linear time.
+func (p *Pattern) NegativeLookaroundWidths() (negAWidth int, negBWidth int) {
+	negAWidth, negBWidth = p.negAWidth, p.negBWidth
+	return
 }
 
 // -----------------------------------------------------------------------------
