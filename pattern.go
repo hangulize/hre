@@ -177,7 +177,9 @@ func (p *Pattern) Find(word string, n int) [][]int {
 		// Find submatches on a shifted word.
 		m := p.re.FindStringSubmatchIndex(word[offset:])
 		for i := range m {
-			m[i] += offset
+			if m[i] != -1 {
+				m[i] += offset
+			}
 		}
 
 		// Submatches look like:

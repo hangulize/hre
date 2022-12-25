@@ -385,6 +385,12 @@ func TestReplaceWithVars(t *testing.T) {
 	assert.Equal(t, "xysolutely", p.Replace("absolutely", rp, -1))
 }
 
+func TestShiftedSubmatchIndex(t *testing.T) {
+	p, _ := NewPattern("-|'", nil, nil)
+	assert.Equal(t, [][]int{[]int{0, 1}}, p.Find("-", -1))
+	assert.Equal(t, [][]int{[]int{0, 1}, []int{1, 2}}, p.Find("--", -1))
+}
+
 // -----------------------------------------------------------------------------
 // Benchmarks
 
